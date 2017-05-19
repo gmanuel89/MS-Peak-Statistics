@@ -1,17 +1,19 @@
-#################### LC-MS URINE STATISTICS (PARALLEL) (TCL-TK GUI) ############
+#################### MS PEAK STATISTICS (PARALLEL) (TCL-TK GUI) ############
 
 
+# Empty the workspace
+rm(list = ls())
 
 
 
 ### Program version (Specified by the program writer!!!!)
-R_script_version <- "2017.04.28.0"
+R_script_version <- "2017.05.19.0"
 ### GitHub URL where the R file is
-github_R_url <- "https://raw.githubusercontent.com/gmanuel89/Public-R-UNIMIB/master/LC-MS%20URINE%20STATISTICS.R"
+github_R_url <- "https://raw.githubusercontent.com/gmanuel89/MS-PEAK-STATISTICS/master/MS%20PEAK%20STATISTICS.R"
 ### Name of the file when downloaded
-script_file_name <- "LC-MS URINE STATISTICS"
+script_file_name <- "MS PEAK STATISTICS"
 # Change log
-change_log <- "1. Parallel processing in correlation enabled!"
+change_log <- "1. New name!!!\n2. Parallel processing in correlation enabled!"
 
 
 
@@ -1562,6 +1564,8 @@ run_statistics_function <- function() {
                 } else {
                     selected_signals_for_inference_intensity_df_no_outliers <- NULL
                 }
+                ### data for testing: for diagnostic analysis
+                if (isTRUE(sampling)) TEST <- DIAGTFD[c("No",BaseEffName,non_signal_variable,SelectedSignsForEffect)]
                 ############################### Dump the files
                 # For each signals of inference...
                 ### OUTLIERS
@@ -1599,7 +1603,7 @@ run_statistics_function <- function() {
                     box_plot <- qplot(non_signal_as_ordered_factor, signal_intensity, data = signal_dataframe, main = plot_name, geom = "boxplot", ylab = "Signal intensity", xlab = non_signal_variable)
                     setwd(plots_two_level_effect_analysis_subfolder)
                     ggsave(box_plot, file = file_name, width = 4, height = 4)
-
+                    
                     ##### Scatter plot
                     plot_name <- sprintf("%s%s%s%s", non_signal_variable," vs ", s, " scatterplot")
                     # Sort the dataframe rows according to the values of the non-signal variable
@@ -2325,24 +2329,15 @@ minimum_number_of_patients <- tclVar("")
 
 ######################## GUI
 
-# Get system info (Platform - Release - Version (- Linux Distro))
+### Get system info (Platform - Release - Version (- Linux Distro))
 system_os = Sys.info()[1]
 os_release = Sys.info()[2]
 os_version = Sys.info()[3]
 
 ### Get the screen resolution
-# Windows
-if (system_os == "Windows") {
-    # Windows 7
-    if (length(grep("7", os_release, fixed = TRUE)) > 0) {
-        # Get system info
-        screen_height <- system("wmic desktopmonitor get screenheight", intern = TRUE)
-        screen_width <- system("wmic desktopmonitor get screenwidth", intern = TRUE)
-        # Retrieve the values
-        screen_height <- as.numeric(screen_height[-c(1, length(screen_height))])
-        screen_width <- as.numeric(screen_width[-c(1, length(screen_width))])
-    } else if (length(grep("10", os_release, fixed = TRUE)) > 0) {
-    # Windows 10
+try({
+    # Windows
+    if (system_os == "Windows") {
         # Get system info
         screen_info <- system("wmic path Win32_VideoController get VideoModeDescription", intern = TRUE)[2]
         # Get the resolution
@@ -2350,46 +2345,55 @@ if (system_os == "Windows") {
         # Retrieve the values
         screen_height <- as.numeric(screen_resolution[2])
         screen_width <- as.numeric(screen_resolution[1])
+    } else if (system_os == "Linux") {
+        # Get system info
+        screen_info <- system("xdpyinfo -display :0", intern = TRUE)
+        # Get the resolution
+        screen_resolution <- screen_info[which(screen_info == "screen #0:") + 1]
+        screen_resolution <- unlist(strsplit(screen_resolution, "dimensions: ")[1])
+        screen_resolution <- unlist(strsplit(screen_resolution, "pixels"))[2]
+        # Retrieve the wto dimensions...
+        screen_width <- as.numeric(unlist(strsplit(screen_resolution, "x"))[1])
+        screen_height <- as.numeric(unlist(strsplit(screen_resolution, "x"))[2])
     }
-} else if (system_os == "Linux") {
-    # Get system info
-    screen_info <- system("xdpyinfo -display :0", intern = TRUE)
-    # Get the resolution
-    screen_resolution <- screen_info[which(screen_info == "screen #0:") + 1]
-    screen_resolution <- unlist(strsplit(screen_resolution, "dimensions: ")[1])
-    screen_resolution <- unlist(strsplit(screen_resolution, "pixels"))[2]
-    # Retrieve the wto dimensions...
-    screen_width <- as.numeric(unlist(strsplit(screen_resolution, "x"))[1])
-    screen_height <- as.numeric(unlist(strsplit(screen_resolution, "x"))[2])
-}
+}, silent = TRUE)
+
 
 
 ### FONTS
 # Default sizes (determined on a 1680x1050 screen) (in order to make them adjust to the size screen, the screen resolution should be retrieved)
 title_font_size <- 24
 other_font_size <- 11
+
+# Adjust fonts size according to the pixel number
+try({
+    # Windows
+    if (system_os == "Windows") {
+        # Determine the font size according to the resolution
+        total_number_of_pixels <- screen_width * screen_height
+        # Determine the scaling factor (according to a complex formula)
+        scaling_factor_title_font <- as.numeric((0.03611 * total_number_of_pixels) + 9803.1254)
+        scaling_factor_other_font <- as.numeric((0.07757 * total_number_of_pixels) + 23529.8386)
+        title_font_size <- as.integer(round(total_number_of_pixels / scaling_factor_title_font))
+        other_font_size <- as.integer(round(total_number_of_pixels / scaling_factor_other_font))
+    } else if (system_os == "Linux") {
+        # Linux
+        # Determine the font size according to the resolution
+        total_number_of_pixels <- screen_width * screen_height
+        # Determine the scaling factor (according to a complex formula)
+        scaling_factor_title_font <- as.numeric((0.03611 * total_number_of_pixels) + 9803.1254)
+        scaling_factor_other_font <- as.numeric((0.07757 * total_number_of_pixels) + 23529.8386)
+        title_font_size <- as.integer(round(total_number_of_pixels / scaling_factor_title_font))
+        other_font_size <- as.integer(round(total_number_of_pixels / scaling_factor_other_font))
+    } else if (system_os == "Darwin") {
+        # macOS
+        print("Using default font sizes...")
+    }
+}, silent = TRUE)
+
+# Define the fonts
 # Windows
 if (system_os == "Windows") {
-    # Windows 7
-    if (length(grep("7", os_release, fixed = TRUE)) > 0) {
-        # Determine the font size according to the resolution
-        total_number_of_pixels <- screen_width * screen_height
-        # Determine the scaling factor (according to a complex formula)
-        scaling_factor_title_font <- as.numeric((0.03611 * total_number_of_pixels) + 9803.1254)
-        scaling_factor_other_font <- as.numeric((0.07757 * total_number_of_pixels) + 23529.8386)
-        title_font_size <- as.integer(round(total_number_of_pixels / scaling_factor_title_font))
-        other_font_size <- as.integer(round(total_number_of_pixels / scaling_factor_other_font))
-    } else if (length(grep("10", os_release, fixed = TRUE)) > 0) {
-    # Windows 10
-        # Determine the font size according to the resolution
-        total_number_of_pixels <- screen_width * screen_height
-        # Determine the scaling factor (according to a complex formula)
-        scaling_factor_title_font <- as.numeric((0.03611 * total_number_of_pixels) + 9803.1254)
-        scaling_factor_other_font <- as.numeric((0.07757 * total_number_of_pixels) + 23529.8386)
-        title_font_size <- as.integer(round(total_number_of_pixels / scaling_factor_title_font))
-        other_font_size <- as.integer(round(total_number_of_pixels / scaling_factor_other_font))
-    }
-    # Define the fonts
     garamond_title_bold = tkfont.create(family = "Garamond", size = title_font_size, weight = "bold")
     garamond_other_normal = tkfont.create(family = "Garamond", size = other_font_size, weight = "normal")
     arial_title_bold = tkfont.create(family = "Arial", size = title_font_size, weight = "bold")
@@ -2403,20 +2407,13 @@ if (system_os == "Windows") {
     entry_font = trebuchet_other_normal
     button_font = trebuchet_other_bold
 } else if (system_os == "Linux") {
-    # Linux
-    # Determine the font size according to the resolution
-    total_number_of_pixels <- screen_width * screen_height
-    # Determine the scaling factor (according to a complex formula)
-    scaling_factor_title_font <- as.numeric((0.03611 * total_number_of_pixels) + 9803.1254)
-    scaling_factor_other_font <- as.numeric((0.07757 * total_number_of_pixels) + 23529.8386)
-    title_font_size <- as.integer(round(total_number_of_pixels / scaling_factor_title_font))
-    other_font_size <- as.integer(round(total_number_of_pixels / scaling_factor_other_font))
+    #Linux
     # Ubuntu
     if (length(grep("Ubuntu", os_version, ignore.case = TRUE)) > 0) {
         # Define the fonts
-        ubuntu_title_bold = tkfont.create(family = "Ubuntu", size = title_font_size, weight = "bold")
-        ubuntu_other_normal = tkfont.create(family = "Ubuntu", size = other_font_size, weight = "normal")
-        ubuntu_other_bold = tkfont.create(family = "Ubuntu", size = other_font_size, weight = "bold")
+        ubuntu_title_bold = tkfont.create(family = "Ubuntu", size = (title_font_size + 2), weight = "bold")
+        ubuntu_other_normal = tkfont.create(family = "Ubuntu", size = (other_font_size + 1), weight = "normal")
+        ubuntu_other_bold = tkfont.create(family = "Ubuntu", size = (other_font_size + 1), weight = "bold")
         liberation_title_bold = tkfont.create(family = "Liberation Sans", size = title_font_size, weight = "bold")
         liberation_other_normal = tkfont.create(family = "Liberation Sans", size = other_font_size, weight = "normal")
         liberation_other_bold = tkfont.create(family = "Liberation Sans", size = other_font_size, weight = "bold")
@@ -2424,13 +2421,12 @@ if (system_os == "Windows") {
         bitstream_charter_other_normal = tkfont.create(family = "Bitstream Charter", size = other_font_size, weight = "normal")
         bitstream_charter_other_bold = tkfont.create(family = "Bitstream Charter", size = other_font_size, weight = "bold")
         # Use them in the GUI
-        title_font = bitstream_charter_title_bold
-        label_font = bitstream_charter_other_normal
-        entry_font = bitstream_charter_other_normal
-        button_font = bitstream_charter_other_bold
+        title_font = ubuntu_title_bold
+        label_font = ubuntu_other_normal
+        entry_font = ubuntu_other_normal
+        button_font = ubuntu_other_bold
     } else if (length(grep("Fedora", os_version, ignore.case = TRUE)) > 0) {
         # Fedora
-        # Define the fonts
         cantarell_title_bold = tkfont.create(family = "Cantarell", size = title_font_size, weight = "bold")
         cantarell_other_normal = tkfont.create(family = "Cantarell", size = other_font_size, weight = "normal")
         cantarell_other_bold = tkfont.create(family = "Cantarell", size = other_font_size, weight = "bold")
@@ -2444,7 +2440,6 @@ if (system_os == "Windows") {
         button_font = cantarell_other_bold
     } else {
         # Other linux distros
-        # Define the fonts
         liberation_title_bold = tkfont.create(family = "Liberation Sans", size = title_font_size, weight = "bold")
         liberation_other_normal = tkfont.create(family = "Liberation Sans", size = other_font_size, weight = "normal")
         liberation_other_bold = tkfont.create(family = "Liberation Sans", size = other_font_size, weight = "bold")
@@ -2456,7 +2451,6 @@ if (system_os == "Windows") {
     }
 } else if (system_os == "Darwin") {
     # macOS
-    # Define the fonts
     helvetica_title_bold = tkfont.create(family = "Helvetica", size = title_font_size, weight = "bold")
     helvetica_other_normal = tkfont.create(family = "Helvetica", size = other_font_size, weight = "normal")
     helvetica_other_bold = tkfont.create(family = "Helvetica", size = other_font_size, weight = "bold")
@@ -2466,7 +2460,6 @@ if (system_os == "Windows") {
     entry_font = helvetica_other_normal
     button_font = helvetica_other_bold
 }
-
 
 # The "area" where we will put our input lines
 window <- tktoplevel(bg = "white")
@@ -2500,12 +2493,6 @@ tkinsert(pvalue_tests_entry, "end", "0.05")
 cumulative_class_in_two_level_effect_analysis_entry <- tkbutton(window, text="Cumulative class in the\ntwo-level effect analysis", command = cumulative_class_in_two_level_effect_analysis_choice, font = button_font, bg = "white", width = 20)
 plot_correlation_graphs_entry <- tkbutton(window, text = "Plot correlation\ngraphs", command = plot_correlation_graphs_choice, font = button_font, bg = "white", width = 20)
 transform_data_entry <- tkbutton(window, text = "Data transformation", command = transform_data_choice, font = button_font, bg = "white", width = 20)
-#TestPer_Base_label <- tklabel(window, text="TestPer_Base", font = label_font)
-#TestPer_Base_entry <- tkentry(window, width = 10, textvariable = TestPer_Base, font = entry_font)
-#tkinsert(TestPer_Base_entry, "end", "0.17")
-#TestPer_Adv_label <- tklabel(window, text="TestPer_Adv", font = label_font)
-#TestPer_Adv_entry <- tkentry(window, width = 10, textvariable = TestPer_Adv, font = entry_font)
-#tkinsert(TestPer_Adv_entry, "end", "0.19")
 # Buttons
 download_updates_button <- tkbutton(window, text="DOWNLOAD\nUPDATE...", command = download_updates_function, font = button_font, bg = "white", width = 20)
 run_statistics_function_button <- tkbutton(window, text="RUN\nSTATISTICS", command = run_statistics_function, font = button_font, bg = "white", width = 20)
@@ -2570,8 +2557,4 @@ tkgrid(pvalue_expression_label, row = 8, column = 2, padx = c(10, 10), pady = c(
 tkgrid(pvalue_tests_label, row = 8, column = 4, padx = c(10, 10), pady = c(10, 10))
 tkgrid(minimum_number_of_patients_label, row = 9, column = 2, padx = c(10, 10), pady = c(10, 10))
 tkgrid(allow_parallelization_value_label, row = 9, column = 5, padx = c(10, 10), pady = c(10, 10))
-#tkgrid(TestPer_Base_label, row = 7, column = 3, padx = c(10, 10), pady = c(10, 10))
-#tkgrid(TestPer_Base_entry, row = 7, column = 4, padx = c(10, 10), pady = c(10, 10))
-#tkgrid(TestPer_Adv_label, row = 8, column = 3, padx = c(10, 10), pady = c(10, 10))
-#tkgrid(TestPer_Adv_entry, row = 8, column = 4, padx = c(10, 10), pady = c(10, 10))
 
