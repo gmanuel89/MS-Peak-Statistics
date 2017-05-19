@@ -2465,9 +2465,9 @@ if (system_os == "Windows") {
 window <- tktoplevel(bg = "white")
 tkwm.resizable(window, FALSE, FALSE)
 #tkpack.propagate(window, FALSE)
-tktitle(window) <- "LC-MS URINE STATISTICS"
+tktitle(window) <- "MS PEAK STATISTICS"
 # Title label
-title_label <- tklabel(window, text = "LC-MS URINE STATISTICS", font = title_font, bg = "white")
+title_label <- tklabel(window, text = "MS PEAK STATISTICS", font = title_font, bg = "white")
 # Entries
 select_input_button <- tkbutton(window, text="IMPORT FILE...", command = file_import_function, font = button_font, bg = "white", width = 20)
 browse_output_button <- tkbutton(window, text="BROWSE\nOUTPUT FOLDER...", command = browse_output_function, font = button_font, bg = "white", width = 20)
