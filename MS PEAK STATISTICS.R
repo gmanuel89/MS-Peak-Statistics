@@ -9,7 +9,7 @@ rm(list = ls())
 ### Program version (Specified by the program writer!!!!)
 R_script_version <- "2017.05.19.0"
 ### GitHub URL where the R file is
-github_R_url <- "https://raw.githubusercontent.com/gmanuel89/MS-PEAK-STATISTICS/master/MS%20PEAK%20STATISTICS.R"
+github_R_url <- "https://raw.githubusercontent.com/gmanuel89/MS-Peak-Statistics/master/MS%20PEAK%20STATISTICS.R"
 ### Name of the file when downloaded
 script_file_name <- "MS PEAK STATISTICS"
 # Change log
