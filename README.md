@@ -2,6 +2,11 @@
 
 ***
 
+## Program version
+In order for this WIKI to be applicable, the version of the program must be equal to or higher than **2017.05.31.0**.
+
+***
+
 ## Programming language
 [R: The Comprehensive R Archive Network](https://www.r-project.org/)
 
@@ -58,7 +63,7 @@ The spectra files are placed in a folder with the same name as the peaklist file
 
 * **Remove outliers Multi-level effect analysis**: defines if the outlier removal should be performed when computing the multi-level effect analysis.
 
-* **Data transformation**: defines if the imported data (excluding the demographical data) should undergo transformation ("Square root", "Natural logarithm", "Decimal logarithm", "Absolute value", "Sine", "Cosine", "Exponential").
+* **Data transformation**: defines if the imported data (excluding the demographical data) should undergo transformation ("Square root", "Natural logarithm", "Decimal logarithm", "Binary logarithm", "Absolute value", "Sine", "Cosine", "Exponential").
 
 * **Data REC**: defines if a copy of the original data should be saved in the output folder.
 
