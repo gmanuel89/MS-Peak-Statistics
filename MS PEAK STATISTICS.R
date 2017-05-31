@@ -7,9 +7,11 @@ rm(list = ls())
 
 
 ### Program version (Specified by the program writer!!!!)
-R_script_version <- "2017.05.19.0"
+R_script_version <- "2017.05.31.0"
 ### GitHub URL where the R file is
 github_R_url <- "https://raw.githubusercontent.com/gmanuel89/MS-Peak-Statistics/master/MS%20PEAK%20STATISTICS.R"
+### GitHub URL of the program's WIKI
+github_wiki_url <- "https://github.com/gmanuel89/MS-Peak-Statistics/wiki"
 ### Name of the file when downloaded
 script_file_name <- "MS PEAK STATISTICS"
 # Change log
@@ -780,7 +782,7 @@ transform_data_choice <- function() {
     if (transform_data == "YES") {
         transform_data <- TRUE
         # Select the algorithm
-        transform_data_algorithm <- select.list(c("Square root", "Natural logarithm", "Decimal logarithm", "Absolute value", "Sine", "Cosine", "Exponential"), title = "Data transformation method", preselect = "Square root")
+        transform_data_algorithm <- select.list(c("Square root", "Natural logarithm", "Decimal logarithm", "Binary logarithm", "Absolute value", "Sine", "Cosine", "Exponential"), title = "Data transformation method", preselect = "Square root")
         # Fix the values
         if (transform_data_algorithm == "") {
             transform_data_algorithm <- "Square root"
@@ -1070,6 +1072,8 @@ run_statistics_function <- function() {
                 input_data[,!(names(input_data) %in% non_signals)] <- log(input_data[,!(names(input_data) %in% non_signals)])
             } else if (transform_data_algorithm == "Decimal logarithm") {
                 input_data[,!(names(input_data) %in% non_signals)] <- log10(input_data[,!(names(input_data) %in% non_signals)])
+            } else if (transform_data_algorithm == "Binary logarithm") {
+                input_data[,!(names(input_data) %in% non_signals)] <- log2(input_data[,!(names(input_data) %in% non_signals)])
             } else if (transform_data_algorithm == "Absolute value") {
                 input_data[,!(names(input_data) %in% non_signals)] <- abs(input_data[,!(names(input_data) %in% non_signals)])
             } else if (transform_data_algorithm == "Sine") {
@@ -2284,7 +2288,16 @@ run_statistics_function <- function() {
     }
 }
 
-
+##### Show info function
+show_info_function <- function() {
+    if (Sys.info()[1] == "Linux") {
+        system(command = paste("xdg-open", github_wiki_url), intern = FALSE)
+    } else if (Sys.info()[1] == "Darwin") {
+        system(command = paste("open", github_wiki_url), intern = FALSE)
+    } else if (Sys.info()[1] == "Windows") {
+        system(command = paste("cmd /c start", github_wiki_url), intern = FALSE)
+    }
+}
 
 
 
@@ -2412,8 +2425,8 @@ if (system_os == "Windows") {
     if (length(grep("Ubuntu", os_version, ignore.case = TRUE)) > 0) {
         # Define the fonts
         ubuntu_title_bold = tkfont.create(family = "Ubuntu", size = (title_font_size + 2), weight = "bold")
-        ubuntu_other_normal = tkfont.create(family = "Ubuntu", size = (other_font_size + 1), weight = "normal")
-        ubuntu_other_bold = tkfont.create(family = "Ubuntu", size = (other_font_size + 1), weight = "bold")
+        ubuntu_other_normal = tkfont.create(family = "Ubuntu", size = (other_font_size), weight = "normal")
+        ubuntu_other_bold = tkfont.create(family = "Ubuntu", size = (other_font_size), weight = "bold")
         liberation_title_bold = tkfont.create(family = "Liberation Sans", size = title_font_size, weight = "bold")
         liberation_other_normal = tkfont.create(family = "Liberation Sans", size = other_font_size, weight = "normal")
         liberation_other_bold = tkfont.create(family = "Liberation Sans", size = other_font_size, weight = "bold")
@@ -2467,7 +2480,7 @@ tkwm.resizable(window, FALSE, FALSE)
 #tkpack.propagate(window, FALSE)
 tktitle(window) <- "MS PEAK STATISTICS"
 # Title label
-title_label <- tklabel(window, text = "MS PEAK STATISTICS", font = title_font, bg = "white")
+title_label <- tkbutton(window, text = "MS PEAK STATISTICS", command = show_info_function, font = title_font, bg = "white", relief = "flat")
 # Entries
 select_input_button <- tkbutton(window, text="IMPORT FILE...", command = file_import_function, font = button_font, bg = "white", width = 20)
 browse_output_button <- tkbutton(window, text="BROWSE\nOUTPUT FOLDER...", command = browse_output_function, font = button_font, bg = "white", width = 20)
