@@ -17,17 +17,17 @@ The software imports the peaklist matrix exported from other pieces of software 
 
 The software first separates mass spectrometric data from demographical data (according to what the user specifies during the import phase), allows the user to select a discriminatory attribute (to be used in statistical analysis as class/outcome/response variable) and demographical attributes for the different statistical analysis.
 
-After identifying all the data types, the software allows data transformation, in order to change the distribution type of the variables (e.g. from non-normal to normal). Then, the software computes correlation analysis between each spectral feature (peak) and selected demographical data and prints correlation scatter plots.
+After identifying all the data types, the software allows data transformation ("Square root", "Decimal logarithm", "Natural logarithm", "Binary logarithm", "Sine", "Cosine", "Exponential"), in order to change the distribution type of the variables (e.g. from non-normal to normal). Then, the software computes correlation analysis between each spectral feature (peak) and selected demographical data and prints correlation scatter plots.
 
 Moreover, the software computes two-level and multi-level effect statistical analysis, by seeing the discriminant attribute respectively as a two-level factor variable (0, 1) and a multi-level factor variable (1, 2, 3, 4, ...).
 
 The software operates as follows, for each mass spectrometric feature (peak):
-    * The distribution of the signal intensity is evaluated by the Shapiro-Wilk test (both in two-level and multi-level effect analysis), in order to define if the data is normally or non-normally distributed.
-    * The equality of variances in the two-level effect analysis is evaluated by the variance F test (for normal data) and the Levene test (for non-normal data).
-    * The differently expressed signals in the two-level effect analysis are evaluated by the statistical tests with a set level of alpha (p-value threshold): t-test (for normal data with equal and unequal variances), Wilcoxon rank-sum test (for non-normal data with equal variances), Kolmogorov-Smirnov Test (for non-normal data with unequal variances).
-    * The equality of variances in the multi-level effect analysis is evaluated by the Bartlett test (for normal data) and the Levene test (for non-normal data).
-    * The differently expressed signals in the multi-level effect analysis are evaluated by the statistical tests with a set level of alpha (p-value threshold): ANOVA (for normal data with equal variances), Kruskal-Wallis rank-sum test (for non-normal data with equal variances), Welch test (for normal data with unequal variances) and Permutation test (for non-normal data with unequal variances).
-    * Pot-hoc tests are then performed in order to correct the p-value for multiple comparisons in the multi-level effect analysis.
+    * The distribution of the signal intensity is evaluated by the **_Shapiro-Wilk test_** (both in two-level and multi-level effect analysis), in order to define if the data is normally or non-normally distributed.
+    * The equality of variances in the two-level effect analysis is evaluated by the variance **_F test_** (for normal data) and the **_Levene test_** (for non-normal data).
+    * The differently expressed signals in the two-level effect analysis are evaluated by the statistical tests with a set level of alpha (p-value threshold): **_t-test_** (for normal data with equal and unequal variances), **_Wilcoxon rank-sum test_** (for non-normal data with equal variances), **_Kolmogorov-Smirnov test_** (for non-normal data with unequal variances).
+    * The equality of variances in the multi-level effect analysis is evaluated by the **_Bartlett test_** (for normal data) and the **_Levene test_** (for non-normal data).
+    * The differently expressed signals in the multi-level effect analysis are evaluated by the statistical tests with a set level of alpha (p-value threshold): **_ANOVA (ANalysis Of VAriance)_** (for normal data with equal variances), **_Kruskal-Wallis rank-sum test_** (for non-normal data with equal variances), **_Welch test_** (for normal data with unequal variances) and **_Permutation test_** (for non-normal data with unequal variances).
+    * **_Pot-hoc tests_** are then performed in order to correct the p-value for multiple comparisons in the multi-level effect analysis.
 
 The software can be also applicable to any kind of data, since all it takes is a matrix in which each row is an observation and each column is a feature, and among the features some are demographical data.
 
