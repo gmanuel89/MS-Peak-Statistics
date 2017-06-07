@@ -22,12 +22,12 @@ After identifying all the data types, the software allows data transformation ("
 Moreover, the software computes two-level and multi-level effect statistical analysis, by seeing the discriminant attribute respectively as a two-level factor variable (0, 1) and a multi-level factor variable (1, 2, 3, 4, ...).
 
 The software operates as follows, for each mass spectrometric feature (peak):
-    * The distribution of the signal intensity is evaluated by the **_Shapiro-Wilk test_** (both in two-level and multi-level effect analysis), in order to define if the data is normally or non-normally distributed.
-    * The equality of variances in the two-level effect analysis is evaluated by the variance **_F test_** (for normal data) and the **_Levene test_** (for non-normal data).
-    * The differently expressed signals in the two-level effect analysis are evaluated by the statistical tests with a set level of alpha (p-value threshold): **_t-test_** (for normal data with equal and unequal variances), **_Wilcoxon rank-sum test_** (for non-normal data with equal variances), **_Kolmogorov-Smirnov test_** (for non-normal data with unequal variances).
-    * The equality of variances in the multi-level effect analysis is evaluated by the **_Bartlett test_** (for normal data) and the **_Levene test_** (for non-normal data).
-    * The differently expressed signals in the multi-level effect analysis are evaluated by the statistical tests with a set level of alpha (p-value threshold): **_ANOVA (ANalysis Of VAriance)_** (for normal data with equal variances), **_Kruskal-Wallis rank-sum test_** (for non-normal data with equal variances), **_Welch test_** (for normal data with unequal variances) and **_Permutation test_** (for non-normal data with unequal variances).
-    * **_Pot-hoc tests_** are then performed in order to correct the p-value for multiple comparisons in the multi-level effect analysis.
+    * The *distribution* of the signal intensity is evaluated by the **_Shapiro-Wilk test_** (both in *two-level* and *multi-level effect analysis*), in order to define if the data is normally or non-normally distributed.
+    * The *equality of variances* in the *two-level effect analysis* is evaluated by the variance **_F test_** (for normal data) and the **_Levene test_** (for non-normal data).
+    * The *differently expressed* signals in the *two-level effect analysis* are evaluated by the statistical tests with a set level of alpha (p-value threshold): **_t-test_** (for normal data with equal and unequal variances), **_Wilcoxon rank-sum test_** (for non-normal data with equal variances), **_Kolmogorov-Smirnov test_** (for non-normal data with unequal variances).
+    * The *equality of variances* in the *multi-level effect analysis* is evaluated by the **_Bartlett test_** (for normal data) and the **_Levene test_** (for non-normal data).
+    * The *differently expressed* signals in the *multi-level effect analysis* are evaluated by the statistical tests with a set level of alpha (p-value threshold): **_ANOVA (ANalysis Of VAriance)_** (for normal data with equal variances), **_Kruskal-Wallis rank-sum test_** (for non-normal data with equal variances), **_Welch test_** (for normal data with unequal variances) and **_Permutation test_** (for non-normal data with unequal variances).
+    * **_Post-Hoc tests_** are then performed in order to correct the p-value for multiple comparisons in the multi-level effect analysis.
 
 The software can be also applicable to any kind of data, since all it takes is a matrix in which each row is an observation and each column is a feature, and among the features some are demographical data.
 
@@ -86,3 +86,75 @@ The spectra files are placed in a folder with the same name as the peaklist file
 * **Run statistics**: runs the software.
 
 * **Quit**: close the program and the R session.
+
+***
+
+## Statistical tests
+
+* **Shapiro-Wilk test**
+    * Two-level analysis
+        * Data distribution (normal or non-normal)
+    * Multi-level analysis
+        * Data distribution (normal or non-normal)
+
+* **F test**
+    * Two-level analysis
+        * Normal data
+            * Equality of variances (homoschedasticity or heteroschedasticity)
+
+* **Levene test**
+    * Two-level analysis
+        * Non-normal data
+            * Equality of variances (homoschedasticity or heteroschedasticity)
+    * Multi-level analysis
+        * Non-normal data
+            * Equality of variances (homoschedasticity or heteroschedasticity)
+
+* **Bartlett test**
+    * Multi-level analysis
+        * Normal data
+            * Equality of variances (homoschedasticity or heteroschedasticity)
+
+* **T test**
+    * Two-level analysis
+        * Normal data
+            * Homoschedastic or heteroschedastic data
+                * Difference of expression
+
+* **Wilcoxon rank-sum test**
+    * Two-level analysis
+        * Non-normal data
+            * Homoschedastic data
+                * Difference of expression
+
+* **Kolmogorov-Smirnov test**
+    * Two-level analysis
+        * Non-normal data
+            * Heteroschedastic data
+                * Difference of expression
+
+* **ANOVA (ANalysis Of VAriance)**
+    * Multi-level analysis
+        * Normal data
+            * Homoschedastic data
+                * Difference of expression
+
+* **Kruskal-Wallis rank-sum test**
+    * Multi-level analysis
+        * Non-normal data
+            * Homoschedastic data
+                * Difference of expression
+
+* **Welch test**
+    * Multi-level analysis
+        * Normal data
+            * Heteroschedastic data
+                * Difference of expression
+
+* **Permutation test**
+    * Multi-level analysis
+        * Non-normal data
+            * Heteroschedastic data
+                * Difference of expression
+
+* **Post-Hoc tests**
