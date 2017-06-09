@@ -1,14 +1,15 @@
+# Clear the console
+cat("\014")
+# Empty the workspace
+rm(list = ls())
+
 ms_peak_statistics <- function() {
+    
     #################### MS PEAK STATISTICS (PARALLEL) (TCL-TK GUI) ############
     
     
-    # Empty the workspace
-    #rm(list = ls())
-    
-    
-    
     ### Program version (Specified by the program writer!!!!)
-    R_script_version <- "2017.06.07.0"
+    R_script_version <- "2017.06.09.0"
     ### GitHub URL where the R file is
     github_R_url <- "https://raw.githubusercontent.com/gmanuel89/MS-Peak-Statistics/master/MS%20PEAK%20STATISTICS.R"
     ### GitHub URL of the program's WIKI
@@ -381,7 +382,7 @@ ms_peak_statistics <- function() {
     ##### File import
     file_import_function <- function() {
         filepath_import_select <- tkmessageBox(title = "Input file", message = "Select the file containing all the mass spectrometric information for the statistics", icon = "info")
-        input_file <- tclvalue(tkgetOpenFile(filetypes = "{{Microsoft Excel files} {.xls .xlsx}} {{Comma Separated Value files} {.csv}}"))
+        input_file <- tclvalue(tkgetOpenFile(filetypes = "{{Comma Separated Value files} {.csv}} {{Microsoft Excel files} {.xls .xlsx}}"))
         if (!nchar(input_file)) {
             tkmessageBox(message = "No file selected")
         } else {
@@ -433,10 +434,10 @@ ms_peak_statistics <- function() {
             ##### Determine the features of interest
             # Discriminant column
             tkmessageBox(title = "Discriminant feature", message = "Select the discriminant feature", icon = "info")
-            discriminant_feature <- select.list(c(non_signals, "NONE"), title = "Discriminant feature", preselect = ifelse("Class" %in% feature_vector, "Class", NULL))
+            discriminant_feature <- select.list(c(non_signals, "NONE"), title = "Discriminant feature", preselect = "Class")
             # Discriminant column
             tkmessageBox(title = "Patient ID", message = "Select the attribute for the patient ID", icon = "info")
-            patient_id_attribute <- select.list(c(non_signals, "NONE"), title = "Patient ID attribute", preselect = ifelse("No" %in% feature_vector, "No", NULL))
+            patient_id_attribute <- select.list(c(non_signals, "NONE"), title = "Patient ID attribute", preselect = "No")
             # Features for correlation analysis
             if (correlation_analysis == TRUE) {
                 tkmessageBox(title = "Correlation analysis data", message = "Select the demographic data for correlation analysis", icon = "info")
@@ -1460,7 +1461,7 @@ ms_peak_statistics <- function() {
                         }
                         ### If the number of patients in the two lists is more than the minimum number of patients allowed and all the elements of the two groups are not the same...
                         if (length(group_0) >= minimum_number_of_patients && length(group_1) >= minimum_number_of_patients && !all(group_0 == group_0[1]) && !all(group_1 == group_1[1])) {
-                            # Checking for normal distributed data in the two groups (class 0 and class 1)
+                            # Checking for normal distributed data in the two groups (class 0 and class 1) (Shapiro-Wilk normality test)
                             if (length(group_0) >= 3 && length(group_0) <= 5000) {
                                 shapiro_list_0[[name_group_0]] <- shapiro.test(as.numeric(group_0))
                             } else {
@@ -1471,9 +1472,9 @@ ms_peak_statistics <- function() {
                             } else {
                                 shapiro_list_1[[name_group_1]] <- NA
                             }
-                            # Checking variances (Normal data)
+                            # Checking variances (Normal data) (F test)
                             variance_test_list[[m]] <- var.test(as.numeric(group_0), as.numeric(group_1))
-                            # Checking variances (Non-Normal data)
+                            # Checking variances (Non-Normal data) (Levene's test)
                             Leven_test_list[[m]] <- levene.test(y = as.numeric(mass_x), group = response_variable, location = "mean", kruskal.test = T)
                             # Normal Data, Equal Variances --> Equal Variance t-test
                             EqTTest_list[[m]] <- t.test(as.numeric(group_0), as.numeric(group_1))
@@ -1862,17 +1863,17 @@ ms_peak_statistics <- function() {
                             }
                             # Do everything only if the factor variable has more than one level
                             if (length(levels(as.factor(response_variable))) > 1) {
-                                # Checking variances
+                                # Checking variances (normal data) (Bartlett test of homogeneity of variances)
                                 bartlett_list_multi[[m]] <- bartlett.test(as.numeric(mass_x) ~ response_variable)
-                                ### Anova
+                                ### Anova (normal, equal variance)
                                 anova_list_multi[[m]] <- anova(lm(formula = as.numeric(mass_x) ~ response_variable))
-                                ### Leven
+                                ### Checking variances (non-normal data) Levene's test
                                 leven_list_multi[[m]] <- levene.test(as.numeric(mass_x), response_variable, location = "mean", kruskal.test = T)
-                                ### Kruskal
+                                ### Kruskal (non-normal data, equal variances)
                                 kruskal_list_multi[[m]] <- kruskal.test(as.numeric(mass_x) ~ response_variable)
-                                ### Welch
+                                ### Welch (normal, unequal variances)
                                 welch_list_multi[[m]] <- oneway.test(as.numeric(mass_x) ~ response_variable, var.equal = F)
-                                ### k-sets Permutation Test for non parametric heteroschedastic data
+                                ### k-sets Permutation Test for non parametric heteroschedastic data (Two- and K-Sample Location Tests) (non-normal, unequal variances)
                                 permutation_test_list_multi[[m]] <- oneway_test(as.numeric(mass_x) ~ response_variable, alternative = 'two.sided')
                             } else {
                                 bartlett_list_multi[[m]] <- NA
