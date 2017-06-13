@@ -5,11 +5,13 @@ rm(list = ls())
 
 ms_peak_statistics <- function() {
     
-    #################### MS PEAK STATISTICS (PARALLEL) (TCL-TK GUI) ############
+    #################### MS PEAK STATISTICS (TCL-TK GUI) ############
     
     
     ### Program version (Specified by the program writer!!!!)
-    R_script_version <- "2017.06.09.0"
+    R_script_version <- "2017.06.13.0"
+    ### Force update (in case something goes wrong after an update, when checking for updates and reading the variable force_update, the script can automatically download the latest working version, even if the rest of the script is corrupted, because it is the first thing that reads)
+    force_update <- FALSE
     ### GitHub URL where the R file is
     github_R_url <- "https://raw.githubusercontent.com/gmanuel89/MS-Peak-Statistics/master/MS%20PEAK%20STATISTICS.R"
     ### GitHub URL of the program's WIKI
@@ -208,10 +210,12 @@ ms_peak_statistics <- function() {
     
     ##################################################### DEFINE WHAT THE BUTTONS DO
     
-    ##### Check for updates (from my GitHub page) (it just updates the label telling the user if there are updates) (it updates the check for updates value that is called by the label)
+    ##### Check for updates (from my GitHub page) (it just updates the label telling the user if there are updates) (it updates the check for updates value that is called by the label). The function will read also if an update should be forced.
     check_for_updates_function <- function() {
         ### Initialize the version number
         online_version_number <- NULL
+        ### Initialize the force update
+        online_force_update <- NULL
         ### Initialize the variable that says if there are updates
         update_available <- FALSE
         ### Initialize the change log
@@ -225,7 +229,7 @@ ms_peak_statistics <- function() {
                 online_file <- readLines(con = github_R_url)
                 ### Retrieve the version number
                 for (l in online_file) {
-                    if (length(grep("R_script_version", l, fixed = TRUE)) > 0) {
+                    if (length(grep("R_script_version <-", l, fixed = TRUE)) > 0) {
                         # Isolate the "variable" value
                         online_version_number <- unlist(strsplit(l, "R_script_version <- ", fixed = TRUE))[2]
                         # Remove the quotes
@@ -233,9 +237,20 @@ ms_peak_statistics <- function() {
                         break
                     }
                 }
+                ### Retrieve the force update
+                for (l in online_file) {
+                    if (length(grep("force_update <-", l, fixed = TRUE)) > 0) {
+                        # Isolate the "variable" value
+                        online_force_update <- as.logical(unlist(strsplit(l, "force_update <- ", fixed = TRUE))[2])
+                        break
+                    }
+                    if (is.null(online_force_update)) {
+                        online_force_update <- FALSE
+                    }
+                }
                 ### Retrieve the change log
                 for (l in online_file) {
-                    if (length(grep("change_log", l, fixed = TRUE)) > 0) {
+                    if (length(grep("change_log <-", l, fixed = TRUE)) > 0) {
                         # Isolate the "variable" value
                         online_change_log <- unlist(strsplit(l, "change_log <- ", fixed = TRUE))[2]
                         # Remove the quotes
@@ -281,7 +296,7 @@ ms_peak_statistics <- function() {
                 if (is.null(online_version_number)) {
                     # The version number could not be ckecked due to internet problems
                     # Update the label
-                    check_for_updates_value <- paste("Version: ", R_script_version, "\nUpdates not checked: connection problems", sep = "")
+                    check_for_updates_value <- paste("Version: ", R_script_version, "\nUpdates not checked:\nconnection problems", sep = "")
                 } else {
                     if (update_available == TRUE) {
                         # Update the label
@@ -296,45 +311,56 @@ ms_peak_statistics <- function() {
         ### Something went wrong: library not installed, retrieving failed, errors in parsing the version number
         if (is.null(online_version_number)) {
             # Update the label
-            check_for_updates_value <- paste("Version: ", R_script_version, "\nUpdates not checked: connection problems", sep = "")
+            check_for_updates_value <- paste("Version: ", R_script_version, "\nUpdates not checked:\nconnection problems", sep = "")
         }
         # Escape the function
         update_available <<- update_available
         online_change_log <<- online_change_log
         check_for_updates_value <<- check_for_updates_value
         online_version_number <<- online_version_number
+        online_force_update <<- online_force_update
     }
     
     ##### Download the updated file (from my GitHub page)
     download_updates_function <- function() {
         # Download updates only if there are updates available
-        if (update_available == TRUE) {
+        if (update_available == TRUE || online_force_update == TRUE) {
             # Initialize the variable which says if the file has been downloaded successfully
             file_downloaded <- FALSE
             # Choose where to save the updated script
             tkmessageBox(title = "Download folder", message = "Select where to save the updated script file", icon = "info")
             download_folder <- tclvalue(tkchooseDirectory())
-            if (!nchar(download_folder)) {
-                # Get the output folder from the default working directory
-                download_folder <- getwd()
-            }
-            # Go to the working directory
-            setwd(download_folder)
-            tkmessageBox(message = paste("The updated script file will be downloaded in:\n\n", download_folder, sep = ""))
-            # Download the file
-            try({
-                download.file(url = github_R_url, destfile = paste(script_file_name, " (", online_version_number, ").R", sep = ""), method = "auto")
-                file_downloaded <- TRUE
-            }, silent = TRUE)
-            if (file_downloaded == TRUE) {
-                tkmessageBox(title = "Updated file downloaded!", message = paste("The updated script, named:\n\n", paste(script_file_name, " (", online_version_number, ").R", sep = ""), "\n\nhas been downloaded to:\n\n", download_folder, "\n\nClose everything, delete this file and run the script from the new file!", sep = ""), icon = "info")
-                tkmessageBox(title = "Changelog", message = paste("The updated script contains the following changes:\n", online_change_log, sep = ""), icon = "info")
+            # Download the file only if a download folder is specified, otherwise don't
+            if (download_folder != "") {
+                # Go to the working directory
+                setwd(download_folder)
+                tkmessageBox(message = paste("The updated script file will be downloaded in:\n\n", download_folder, sep = ""))
+                # Download the file
+                try({
+                    download.file(url = github_R_url, destfile = paste0(script_file_name, ".R"), method = "auto")
+                    file_downloaded <- TRUE
+                }, silent = TRUE)
+                if (file_downloaded == TRUE) {
+                    tkmessageBox(title = "Updated file downloaded!", message = paste("The updated script, named:\n\n", paste0(script_file_name, ".R"), "\n\nhas been downloaded to:\n\n", download_folder, "\n\nClose everything, delete this file and run the script from the new file!", sep = ""), icon = "info")
+                    tkmessageBox(title = "Changelog", message = paste("The updated script contains the following changes:\n", online_change_log, sep = ""), icon = "info")
+                } else {
+                    tkmessageBox(title = "Connection problem", message = paste("The updated script file could not be downloaded due to internet connection problems!\n\nManually download the updated script file at:\n\n", github_R_url, sep = ""), icon = "warning")
+                }
             } else {
-                tkmessageBox(title = "Connection problem", message = paste("The updated script file could not be downloaded due to internet connection problems!\n\nManually download the updated script file at:\n\n", github_R_url, sep = ""), icon = "warning")
+                # No download folder specified!
+                tkmessageBox(message = "The updated script file will not be downloaded!")
             }
         } else {
             tkmessageBox(title = "No update available", message = "NO UPDATES AVAILABLE!\n\nThe latest version is running!", icon = "info")
         }
+        # Raise the focus on the main window (if there is)
+        try(tkraise(window), silent = TRUE)
+    }
+    
+    ### Downloading forced updates
+    check_for_updates_function()
+    if (online_force_update == TRUE) {
+        download_updates_function()
     }
     
     ##### Output file type (export)
@@ -2341,9 +2367,6 @@ ms_peak_statistics <- function() {
     
     
     ##################################################################### WINDOW GUI
-    
-    ### Check for updates
-    check_for_updates_function()
     
     ########## List of variables, whose values are taken from the entries in the GUI
     pvalue_expression <- tclVar("")
