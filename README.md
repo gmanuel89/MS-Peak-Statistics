@@ -12,6 +12,17 @@ In order for this WIKI to be applicable, the version of the program must be equa
 
 ***
 
+## Platform(s) tested
+Ubuntu Linux 16.04 x64 - R 3.4.0
+
+Fedora Linux 25 x64 - R 3.4.0
+
+Microsoft Windows 7 x64 - R 3.4.0
+
+Microsoft Windows 10 x64 - R 3.4.0
+
+***
+
 ## Scope of the software
 The software imports the peaklist matrix exported from other pieces of software (e.g. [MS PEAKLIST EXPORT](https://github.com/gmanuel89/MS-Peaklist-Export), [SCiLS Lab](http://scils.de/), [PEAKS Studio](http://www.bioinfor.com/peaks-studio/) or [Progenesis QI for Proteomics](http://www.nonlinear.com/progenesis/qi-for-proteomics/)), in which each row is a patient's spectrum (single average mass spectrum or individual spectra/pixels) and each column is a peak in the mass spectrometric dataset, along with other demographical information (such as age, sex or class), and performs different statistical analyses (correlation analysis, two-level effect statistical analysis and multi-level effect statistical analysis). All the statistical analyses can be perform either with outliers included or excluded (employing the interquartile range rule).
 
