@@ -9,7 +9,7 @@ ms_peak_statistics <- function() {
     
     
     ### Program version (Specified by the program writer!!!!)
-    R_script_version <- "2017.06.13.2"
+    R_script_version <- "2017.06.20.0"
     ### Force update (in case something goes wrong after an update, when checking for updates and reading the variable force_update, the script can automatically download the latest working version, even if the rest of the script is corrupted, because it is the first thing that reads)
     force_update <- FALSE
     ### GitHub URL where the R file is
@@ -372,10 +372,30 @@ ms_peak_statistics <- function() {
             file_format <- "csv"
         } else if (output_format == "Microsoft Excel (.xlsx)") {
             file_format <- "xlsx"
-            install_and_load_required_packages("XLConnect")
+            # Try to install the XLConnect (it will fail if Java is not installed)
+            Java_is_installed <- FALSE
+            try({
+                install_and_load_required_packages("XLConnect")
+                Java_is_installed <- TRUE
+            }, silent = TRUE)
+            # If it didn't install successfully, set to CSV
+            if (Java_is_installed == FALSE) {
+                tkmessageBox(title = "Java not installed", message = "Java is not installed, therefore the package XLConnect cannot be installed and loaded.\nThe output format is switched back to CSV", icon = "warning")
+                file_format <- "csv"
+            }
         } else if (output_format == "Microsoft Excel (.xls)") {
             file_format <- "xls"
-            install_and_load_required_packages("XLConnect")
+            # Try to install the XLConnect (it will fail if Java is not installed)
+            Java_is_installed <- FALSE
+            try({
+                install_and_load_required_packages("XLConnect")
+                Java_is_installed <- TRUE
+            }, silent = TRUE)
+            # If it didn't install successfully, set to CSV
+            if (Java_is_installed == FALSE) {
+                tkmessageBox(title = "Java not installed", message = "Java is not installed, therefore the package XLConnect cannot be installed and loaded.\nThe output format is switched back to CSV", icon = "warning")
+                file_format <- "csv"
+            }
         }
         # Set the value of the displaying label
         output_file_type_export_value_label <- tklabel(window, text = output_format, font = label_font, bg = "white", width = 30)
@@ -853,59 +873,25 @@ ms_peak_statistics <- function() {
         setwd(output_folder)
         if (input_file != "") {
             ##### Automatically create a subfolder with all the results
-            ## Check if such subfolder exists
-            list_of_directories <- list.dirs(output_folder, full.names = FALSE, recursive = FALSE)
-            ## Check the presence of a STATISTICS folder
-            STATISTICS_folder_presence <- FALSE
-            if (length(list_of_directories) > 0) {
-                for (dr in 1:length(list_of_directories)) {
-                    if (length(grep("STATISTICS", list_of_directories[dr], fixed = TRUE)) > 0) {
-                        STATISTICS_folder_presence <- TRUE
-                    }
-                }
+            # Add the date and time to the filename
+            current_date <- unlist(strsplit(as.character(Sys.time()), " "))[1]
+            current_date_split <- unlist(strsplit(current_date, "-"))
+            current_time <- unlist(strsplit(as.character(Sys.time()), " "))[2]
+            current_time_split <- unlist(strsplit(current_time, ":"))
+            final_date <- ""
+            for (x in 1:length(current_date_split)) {
+                final_date <- paste0(final_date, current_date_split[x])
             }
-            ## If it present...
-            if (isTRUE(STATISTICS_folder_presence)) {
-                ## Extract the number after the STATISTICS
-                # Number for the newly created folder
-                STATISTICS_new_folder_number <- 0
-                # List of already present numbers
-                STATISTICS_present_folder_numbers <- integer()
-                # For each folder present...
-                for (dr in 1:length(list_of_directories)) {
-                    # If it is named STATISTICS
-                    if (length(grep("STATISTICS", list_of_directories[dr], fixed = TRUE)) > 0) {
-                        # Split the name
-                        STATISTICS_present_folder_split <- unlist(strsplit(list_of_directories[dr], "STATISTICS"))
-                        # Add the number to the list of STATISTICS numbers
-                        try({
-                            if (!is.na(as.integer(STATISTICS_present_folder_split[2]))) {
-                                STATISTICS_present_folder_numbers <- append(STATISTICS_present_folder_numbers, as.integer(STATISTICS_present_folder_split[2]))
-                            } else {
-                                STATISTICS_present_folder_numbers <- append(STATISTICS_present_folder_numbers, as.integer(0))
-                            }
-                        }, silent = TRUE)
-                    }
-                }
-                # Sort the STATISTICS folder numbers
-                try(STATISTICS_present_folder_numbers <- sort(STATISTICS_present_folder_numbers))
-                # The new folder number will be the greater + 1
-                try(STATISTICS_new_folder_number <- STATISTICS_present_folder_numbers[length(STATISTICS_present_folder_numbers)] + 1)
-                # Generate the new subfolder
-                subfolder <- paste("STATISTICS", STATISTICS_new_folder_number)
-                # Create the subfolder
-                dir.create(file.path(output_folder, subfolder))
-                # Estimate the new output folder
-                output_folder <- file.path(output_folder, subfolder)
-            } else {
-                # If it not present...
-                # Create the folder where to dump the files and go to it...
-                subfolder <- paste("STATISTICS", "1")
-                # Create the subfolder
-                dir.create(file.path(output_folder, subfolder))
-                # Estimate the new output folder
-                output_folder <- file.path(output_folder, subfolder)
+            final_time <- ""
+            for (x in 1:length(current_time_split)) {
+                final_time <- paste0(final_time, current_time_split[x])
             }
+            final_date_time <- paste(final_date, final_time, sep = "_")
+            STATISTICS_subfolder <- paste0("STATISTICS", " (", final_date_time, ")")
+            # Generate the new subfolder
+            output_folder <- file.path(output_folder, STATISTICS_subfolder)
+            # Create the subfolder
+            dir.create(output_folder)
             # Go to the new working directory
             setwd(output_folder)
             
