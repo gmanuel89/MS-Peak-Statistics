@@ -9,7 +9,7 @@ ms_peak_statistics <- function() {
     
     
     ### Program version (Specified by the program writer!!!!)
-    R_script_version <- "2017.06.20.0"
+    R_script_version <- "2017.07.10.0"
     ### Force update (in case something goes wrong after an update, when checking for updates and reading the variable force_update, the script can automatically download the latest working version, even if the rest of the script is corrupted, because it is the first thing that reads)
     force_update <- FALSE
     ### GitHub URL where the R file is
@@ -38,7 +38,12 @@ ms_peak_statistics <- function() {
                 if ("RCurl" %in% installed.packages()[,1]) {
                     library(RCurl)
                 } else {
-                    install.packages("RCurl", repos = "http://cran.mirror.garr.it/mirrors/CRAN/", quiet = TRUE, verbose = FALSE)
+                    # Check for the personal local library presence before installing (~/R/packages/), then instlall in the local library
+                    if (!dir.exists("~/R/libraries/")) {
+                        dir.create("~/R/libraries/")
+                    }
+                    .libPaths("~/R/libraries/")
+                    install.packages("RCurl", repos = "http://cran.mirror.garr.it/mirrors/CRAN/", quiet = TRUE, verbose = FALSE, lib = .libPaths()[1])
                     library(RCurl)
                 }
             }, silent = TRUE)
@@ -72,9 +77,19 @@ ms_peak_statistics <- function() {
             if (there_is_internet == TRUE) {
                 ##### If a repository is specified
                 if (repository != "" || !is.null(repository)) {
-                    update.packages(repos = repository, ask = FALSE, checkBuilt = TRUE, quiet = TRUE, verbose = FALSE)
+                    # Check for the personal local library presence before installing (~/R/packages/), then install in the local library
+                    if (!dir.exists("~/R/libraries/")) {
+                        dir.create("~/R/libraries/")
+                    }
+                    .libPaths("~/R/libraries/")
+                    update.packages(repos = repository, ask = FALSE, checkBuilt = TRUE, quiet = TRUE, verbose = FALSE, lib.loc = .libPaths()[1])
                 } else {
-                    update.packages(ask = FALSE, checkBuilt = TRUE, quiet = TRUE, verbose = FALSE)
+                    # Check for the personal local library presence before installing (~/R/packages/), then instlall in the local library
+                    if (!dir.exists("~/R/libraries/")) {
+                        dir.create("~/R/libraries/")
+                    }
+                    .libPaths("~/R/libraries/")
+                    update.packages(ask = FALSE, checkBuilt = TRUE, quiet = TRUE, verbose = FALSE, lib.loc = .libPaths()[1])
                 }
                 if (print_messages == TRUE) {
                     cat("\nPackages updated\n")
@@ -95,10 +110,20 @@ ms_peak_statistics <- function() {
             if (there_is_internet == TRUE) {
                 ### If a repository is specified
                 if (repository != "" || !is.null(repository)) {
-                    install.packages(missing_packages, repos = repository, quiet = TRUE, verbose = FALSE)
+                    # Check for the personal local library presence before installing (~/R/packages/), then instlall in the local library
+                    if (!dir.exists("~/R/libraries/")) {
+                        dir.create("~/R/libraries/")
+                    }
+                    .libPaths("~/R/libraries/")
+                    install.packages(missing_packages, repos = repository, quiet = TRUE, verbose = FALSE, lib = .libPaths()[1])
                 } else {
                     ### If NO repository is specified
-                    install.packages(missing_packages, quiet = TRUE, verbose = FALSE)
+                    # Check for the personal local library presence before installing (~/R/packages/), then instlall in the local library
+                    if (!dir.exists("~/R/libraries/")) {
+                        dir.create("~/R/libraries/")
+                    }
+                    .libPaths("~/R/libraries/")
+                    install.packages(missing_packages, quiet = TRUE, verbose = FALSE, lib = .libPaths()[1])
                 }
                 if (print_messages == TRUE) {
                     cat("\nAll the required packages have been installed\n")
@@ -215,7 +240,7 @@ ms_peak_statistics <- function() {
         ### Initialize the version number
         online_version_number <- NULL
         ### Initialize the force update
-        online_force_update <- NULL
+        online_force_update <- FALSE
         ### Initialize the variable that says if there are updates
         update_available <- FALSE
         ### Initialize the change log
@@ -325,6 +350,8 @@ ms_peak_statistics <- function() {
     download_updates_function <- function() {
         # Download updates only if there are updates available
         if (update_available == TRUE || online_force_update == TRUE) {
+            # Changelog
+            tkmessageBox(title = "Changelog", message = paste0("The updated script contains the following changes:\n", online_change_log), icon = "info")
             # Initialize the variable which says if the file has been downloaded successfully
             file_downloaded <- FALSE
             # Choose where to save the updated script
@@ -334,15 +361,18 @@ ms_peak_statistics <- function() {
             if (download_folder != "") {
                 # Go to the working directory
                 setwd(download_folder)
-                tkmessageBox(message = paste("The updated script file will be downloaded in:\n\n", download_folder, sep = ""))
+                tkmessageBox(message = paste0("The updated script file will be downloaded in:\n\n", download_folder))
                 # Download the file
                 try({
                     download.file(url = github_R_url, destfile = paste0(script_file_name, ".R"), method = "auto")
                     file_downloaded <- TRUE
                 }, silent = TRUE)
                 if (file_downloaded == TRUE) {
-                    tkmessageBox(title = "Updated file downloaded!", message = paste("The updated script, named:\n\n", paste0(script_file_name, ".R"), "\n\nhas been downloaded to:\n\n", download_folder, "\n\nClose everything, delete this file and run the script from the new file!", sep = ""), icon = "info")
-                    tkmessageBox(title = "Changelog", message = paste("The updated script contains the following changes:\n", online_change_log, sep = ""), icon = "info")
+                    tkmessageBox(title = "Updated file downloaded!", message = paste0("The updated script, named:\n\n", paste0(script_file_name, ".R"), "\n\nhas been downloaded to:\n\n", download_folder, "\n\nThe current window will now close and the new updated script will be loaded!"), icon = "info")
+                    # Destroy the window
+                    try(tkdestroy(window), silent = TRUE)
+                    # Relaunch the script
+                    try(source(paste0(script_file_name, ".R")), silent = TRUE)
                 } else {
                     tkmessageBox(title = "Connection problem", message = paste("The updated script file could not be downloaded due to internet connection problems!\n\nManually download the updated script file at:\n\n", github_R_url, sep = ""), icon = "warning")
                 }
@@ -361,6 +391,20 @@ ms_peak_statistics <- function() {
     check_for_updates_function()
     if (online_force_update == TRUE) {
         download_updates_function()
+    }
+    
+    ### Force check for updates
+    force_check_for_updates_function <- function() {
+        # Check for updates
+        check_for_updates_function()
+        # Display a message
+        if (update_available == TRUE) {
+            # Message
+            tkmessageBox(title = "Update available", message = paste0("Update available!\n", online_version_number, "\n\nPress the 'DOWNLOAD UPDATE...' button to retrieve the updated script!"), icon = "info")
+        } else {
+            # Message
+            tkmessageBox(title = "No update available", message = "No update available!", icon = "info")
+        }
     }
     
     ##### Output file type (export)
@@ -2544,7 +2588,7 @@ ms_peak_statistics <- function() {
     end_session_button <- tkbutton(window, text="QUIT", command = end_session_function, font = button_font, bg = "white", width = 20)
     
     # Displaying labels
-    check_for_updates_value_label <- tklabel(window, text = check_for_updates_value, font = label_font, bg = "white", width = 20)
+    check_for_updates_value_label <- tkbutton(window, text = check_for_updates_value, command = force_check_for_updates_function, font = label_font, bg = "white", width = 20, relief = "flat")
     output_file_type_export_value_label <- tklabel(window, text = output_file_type_export_value, font = label_font, bg = "white", width = 30)
     image_file_type_export_value_label <- tklabel(window, text = image_file_type_export_value, font = label_font, bg = "white", width = 20)
     data_record_value_label <- tklabel(window, text = data_record_value, font = label_font, bg = "white", width = 20)
